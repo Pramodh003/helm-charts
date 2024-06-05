@@ -1,0 +1,47 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test
+  namespace: {{ .Values.namespace }}
+spec:
+  policyTypes:
+    {{- if hasKey .Values.networkPolicy "ingress" }}
+    - Ingress
+    {{- end }}
+    {{- if hasKey .Values.networkPolicy "egress" }}
+    - Egress
+    {{- end }}
+  {{- if hasKey .Values.networkPolicy "ingress" }}
+  ingress:
+  {{- range .Values.networkPolicy.ingress }}
+  - from:
+    - podSelector:
+        matchLabels:
+          {{- range $key, $value := .matchLabels }}
+          {{ $key }}: {{ $value }}
+          {{- end }}
+    ports:
+      {{- range .ports }}
+      - port: {{ .port }}
+        protocol: {{ .protocol }}
+      {{- end }}
+  {{- end }}
+  {{- end }}
+
+  {{- if hasKey .Values.networkPolicy "egress" }}
+  egress:
+  {{- range .Values.networkPolicy.egress }}
+  - to:
+    - podSelector:
+        matchLabels:
+          {{- range $key, $value := .matchLabels }}
+          {{ $key }}: {{ $value }}
+          {{- end }}
+    ports:
+      {{- range .ports }}
+      - port: {{ .port }}
+        protocol: {{ .protocol }}
+      {{- end }}
+  {{- end }}
+  {{- end }}
+
